@@ -291,4 +291,17 @@ calculate_balance_test() ->
     Account_Balance = calculate_bank_account_or_credit_card_balance(1),
     ?assertEqual(1038, Account_Balance).
 
+
+detect_interval_test() ->
+    load_bank_accounts_transaction(2, "Khash", "../include/sample_bank_account.txt"),
+
+    Biweekly = bank_ets:detect_time_interval(2, "Gym"),
+    ?assertEqual(biweekly, Biweekly),
+
+    Monthly = bank_ets:detect_time_interval(2, "Video streaming"),
+    ?assertEqual(monthly, Monthly),
+
+    No_Interval = bank_ets:detect_time_interval(2, "Salary"),
+    ?assertEqual(no_interval, No_Interval).
+
 -endif.
