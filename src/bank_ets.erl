@@ -41,26 +41,29 @@ insert_bank_account(Number, Owner, Transactions) ->
 		}).
 
 
-fetch_all_outgoing_transactions(Number) ->
+fetch_all_outgoing_transactions() ->
+    fetch_all_outgoing_transactions(ets:first(bank_accounts), []).
+
+fetch_outgoing_transactions(Number) ->
     case ets:lookup(bank_accounts, Number) of
 	[] ->
 	    not_found;
 	[{_, Account}] ->
-	    lists:filter(fun(T) ->
-				 case is_record(T, payment) of
-				     true ->
-					 T#payment.amount < 0;
-				     _ ->
-					 T#transaction.amount < 0
-				 end
-			 end, Account#bank_account.transactions)
+	    Transactions = lists:filter(fun(T) ->
+					       case is_record(T, payment) of
+						   true ->
+						       T#payment.amount < 0;
+						   _ ->
+						       T#transaction.amount < 0
+					       end
+				       end, Account#bank_account.transactions),
+	    Account#bank_account{transactions = Transactions}
     end.
-    
-
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
 parse_all_transactions(Device, Parsed) ->
     case io:get_line(Device, "") of
         eof  -> 
@@ -84,10 +87,43 @@ parse_all_transactions(Device, Parsed) ->
 	    end
     end.
 
+fetch_all_outgoing_transactions('$end_of_table', Buffer) ->
+    Buffer;
+fetch_all_outgoing_transactions(Key, Buffer) ->
+    Account = fetch_outgoing_transactions(Key),
+    fetch_all_outgoing_transactions(ets:next(bank_accounts, Key), Buffer ++ [Account]).
 
-
-
-
+generate_sample_accounts() ->
+   case ets:info(bank_accounts) of
+	undefined ->
+	   bank_ets:init_bank_accounts(),
+	   Account = #bank_account{number = 1, owner = "Khash",
+				   transactions = [#payment{date = "20160801", text = "Gym",
+							    recipient = "123456", amount = -200},
+						   #transaction{date = "20160723", text = "Video streaming",
+								amount = -99},
+						   #transaction{date = "20160625", text = "Salary",
+								amount = 1337}]},
+	   Account2 = #bank_account{number = 2, owner = "Clobbe",
+				    transactions = [#payment{date = "20160801", text = "Gym",
+							     recipient = "123456", amount = -200},
+						    #payment{date = "20160701", text = "Gym",
+							     recipient = "123456", amount = -200},
+						    #transaction{date = "20160627", text = "Video streaming",
+								 amount = -99},
+						    #transaction{date = "20160625", text = "Salary",
+								 amount = 2500}]},
+	   ets:insert(bank_accounts, {
+			1, %% Key
+			Account %% Value
+		       }),
+	   ets:insert(bank_accounts, {
+			2, %% Key
+			Account2 %% Value
+		       });
+       _ ->
+	   ok
+    end.
 
 %% ===================================================================
 %% Tests
@@ -95,21 +131,25 @@ parse_all_transactions(Device, Parsed) ->
 
 -ifdef(TEST).
 
+all_outgoing_test() ->
+    generate_sample_accounts(),
+    Accounts = bank_ets:fetch_all_outgoing_transactions(),
+    lists:foreach(fun(Account) ->
+			  Outgoing = lists:filter(fun(T) ->
+							  case is_record(T, payment) of
+							      true ->
+								  T#payment.amount >= 0;
+							      _ ->
+								  T#transaction.amount >= 0
+							  end
+						  end, Account#bank_account.transactions),
+			  ?assertEqual(0, length(Outgoing))
+		  end, Accounts),
+    ets:delete(bank_accounts).
+
 outgoing_test() ->
-    bank_ets:init_bank_accounts(),
-    
-    Account = #bank_account{number = 1, owner = "Khash",
-			    transactions = [#payment{date = "20160801", text = "Gym",
-						     recipient = "123456", amount = -200},
-					    #transaction{date = "20160723", text = "Video streaming",
-							 amount = -99},
-					    #transaction{date = "20160625", text = "Salary",
-							 amount = 1337}]},
-    ets:insert(bank_accounts, {
-		 1, %% Key
-		 Account %% Value
-		}),
-    Transactions = bank_ets:fetch_all_outgoing_transactions(1),
+    generate_sample_accounts(),
+    Account = bank_ets:fetch_outgoing_transactions(1),
     Outgoing = lists:filter(fun(T) ->
 				   case is_record(T, payment) of
 				       true ->
@@ -117,7 +157,8 @@ outgoing_test() ->
 				       _ ->
 					   T#transaction.amount >= 0
 				   end
-			   end, Transactions),
-    ?assertEqual(0, length(Outgoing)).
+			   end, Account#bank_account.transactions),
+    ?assertEqual(0, length(Outgoing)),
+    ets:delete(bank_accounts).
 
 -endif.
