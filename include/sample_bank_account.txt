@@ -1,9 +1,9 @@
-20160801,Gym,Payment,123456,-200
-20160723,Video streaming,Transaction,-99
-20160718,Gym,Payment,123456,-200
-20160704,Gym,Payment,123456,-200
-20160628,Gym,Payment,123456,-50
-20160625,Salary,Transaction,1337
-20160622,Video streaming,Transaction,-99
-20160620,Gym,Payment,123456,-200
-20160523,Video streaming,Transaction,-99
+2016-08-01,Gym,Payment,123456,-200
+2016-07-23,Video streaming,Transaction,-99
+2016-07-18,Gym,Payment,123456,-200
+2016-07-04,Gym,Payment,123456,-200
+2016-06-28,Gym,Payment,123456,-50
+2016-06-25,Salary,Transaction,1337
+2016-06-22,Video streaming,Transaction,-99
+2016-06-20,Gym,Payment,123456,-200
+2016-05-23,Video streaming,Transaction,-99

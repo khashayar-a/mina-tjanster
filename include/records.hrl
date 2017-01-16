@@ -2,7 +2,7 @@
 
 -record(bank_account, {number, owner, transactions}).
 
--record(credit_card, {number, name, tansactions}).
+-record(credit_card, {number, name, transactions}).
 
 -record(payment, {date, text, recipient, amount}).
 
