@@ -3,6 +3,7 @@
 ## How to run
 ### Compile and run program
   `rebar compile`
+  
   `erl -pa ebin -eval "application:start(bank)"`
 ### Compile and run test
   `rebar compile eunit`
