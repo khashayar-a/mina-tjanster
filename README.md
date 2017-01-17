@@ -23,7 +23,7 @@ example: `bank_server:detect_interval(2, "Gym").`
   
 ## Utilities
 ### Load data
-There is functionality for loading data from text file. Text file should be comma separated. For examples you can look at [this sample text file](../blob/master/include/sample_bank_account.txt).
+There is functionality for loading data from text file. Text file should be comma separated. For examples you can look at [this sample text file](../master/include/sample_bank_account.txt).
 You can use this as:
 
 `bank_ets:load_bank_accounts_transaction(Account_Number, Owner, FILE).`
