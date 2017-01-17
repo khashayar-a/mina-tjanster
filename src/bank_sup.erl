@@ -23,5 +23,10 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    Restart = permanent,
+    Shutdown = 2000,
+
+    Bank_Server = {bank_server , {bank_server , start_link , []},
+		 Restart , Shutdown , worker , [bank_server]},
+    {ok, { {one_for_one, 5, 10}, [Bank_Server]} }.
 

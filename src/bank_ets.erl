@@ -13,10 +13,10 @@
 %%%===================================================================
 
 init_bank_accounts() ->
-    ets:new(bank_accounts, [set, protected, named_table, {read_concurrency, true}]).
+    ets:new(bank_accounts, [set, public, named_table, {read_concurrency, true}]).
 
 init_credit_cards() ->
-    ets:new(credit_cards, [set, protected, named_table, {read_concurrency, true}]).
+    ets:new(credit_cards, [set, public, named_table, {read_concurrency, true}]).
 
 load_bank_accounts_transaction(Number, Owner, FileName) ->
     {ok, Device} = file:open(FileName, [read]),
@@ -75,10 +75,10 @@ calculate_bank_account_or_credit_card_balance(Number) ->
 		[] ->
 		    no_such_account_or_credit_card;
 		[{_, Card}] ->
-		    calculate_balance(Card#credit_card.transactions)		    
+		    {card, calculate_balance(Card#credit_card.transactions)}
 	    end;
 	[{_, Account}] ->
-	    calculate_balance(Account#bank_account.transactions)
+	    {bank, calculate_balance(Account#bank_account.transactions)}
     end.
 
 
@@ -286,10 +286,12 @@ calculate_balance_test() ->
     generate_sample_bank_accounts(),
     generate_sample_credit_cards(),
     Credit_Balance = calculate_bank_account_or_credit_card_balance(3),
-    ?assertEqual(499, Credit_Balance),
+    ?assertEqual({card, 499}, Credit_Balance),
 
     Account_Balance = calculate_bank_account_or_credit_card_balance(1),
-    ?assertEqual(1038, Account_Balance).
+    ?assertEqual({bank, 1038}, Account_Balance),
+    ets:delete(bank_accounts),
+    ets:delete(credit_cards).
 
 
 detect_interval_test() ->
@@ -302,6 +304,7 @@ detect_interval_test() ->
     ?assertEqual(monthly, Monthly),
 
     No_Interval = bank_ets:detect_time_interval(2, "Salary"),
-    ?assertEqual(no_interval, No_Interval).
+    ?assertEqual(no_interval, No_Interval),
+    ets:delete(bank_accounts).
 
 -endif.
